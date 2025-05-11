@@ -45,8 +45,13 @@ export function Navbar() {
 
         <div className="flex flex-1 items-center justify-end space-x-4">
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/supermarket">
-              <Button variant="ghost">Supermarché</Button>
+            <Link href="/#partner-access">
+              <Button
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary/10"
+              >
+                Rejoindre en tant que supermarché
+              </Button>
             </Link>
             <Link href="/#install">
               <Button>Installer l&apos;extension</Button>
@@ -129,11 +134,14 @@ export function Navbar() {
             </Link>
             <div className="pt-2 flex flex-col space-y-3">
               <Link
-                href="/supermarket"
+                href="/#partner-access"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <Button variant="ghost" className="w-full justify-start">
-                  Supermarché
+                <Button
+                  variant="outline"
+                  className="w-full justify-start border-primary text-primary hover:bg-primary/10"
+                >
+                  Rejoindre en tant que supermarché
                 </Button>
               </Link>
               <Link href="/#install" onClick={() => setMobileMenuOpen(false)}>

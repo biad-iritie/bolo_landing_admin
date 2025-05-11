@@ -7,6 +7,8 @@ import { Partners } from "@/components/landing/partners";
 import { Testimonials } from "@/components/landing/testimonials";
 import { Install } from "@/components/landing/install";
 import { Footer } from "@/components/landing/footer";
+import { InteractiveDemo } from "@/components/landing/interactive-demo";
+import { PartnerAccess } from "@/components/landing/partner-access";
 
 export default function Home() {
   return (
@@ -17,8 +19,10 @@ export default function Home() {
         <Features />
         <HowItWorks />
         <Screenshots />
+        <InteractiveDemo />
         <Partners />
         <Testimonials />
+        <PartnerAccess />
         <Install />
       </main>
       <Footer />

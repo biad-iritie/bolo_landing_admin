@@ -1,11 +1,18 @@
+"use client";
+
+import { useScrollAnimations } from "@/lib/animation";
+
 export function Features() {
+  // Setup animations via custom hook
+  useScrollAnimations();
+
   return (
     <section
       id="features"
       className="w-full py-12 md:py-24 lg:py-32 bg-gray-50 dark:bg-gray-900"
     >
       <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center animate-on-scroll">
           <div className="space-y-2">
             <div className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-sm dark:bg-gray-800">
               Fonctionnalités
@@ -20,7 +27,7 @@ export function Features() {
           </div>
         </div>
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-3 md:gap-8">
-          <div className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm">
+          <div className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm animate-on-scroll delay-100">
             <div className="rounded-full bg-primary p-3 text-white">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +54,7 @@ export function Features() {
               géolocalisation.
             </p>
           </div>
-          <div className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm">
+          <div className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm animate-on-scroll delay-200">
             <div className="rounded-full bg-primary p-3 text-white">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -74,7 +81,7 @@ export function Features() {
               promotions sont disponibles.
             </p>
           </div>
-          <div className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm">
+          <div className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm animate-on-scroll delay-300">
             <div className="rounded-full bg-primary p-3 text-white">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

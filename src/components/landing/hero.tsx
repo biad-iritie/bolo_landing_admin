@@ -24,7 +24,7 @@ export function Hero() {
                   Installer l&apos;extension
                 </Button>
               </Link>
-              <Link href="/supermarket">
+              <Link href="/#partner-access">
                 <Button size="lg" variant="outline" className="w-full">
                   Rejoindre en tant que supermarché
                 </Button>
