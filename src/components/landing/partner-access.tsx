@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,12 +15,124 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useScrollAnimations } from "@/lib/animation";
+import { useAuth } from "@/lib/auth/use-auth";
+
+// Password validation regex
+const PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 export function PartnerAccess() {
-  useScrollAnimations();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user, isLoading, login, register } = useAuth();
   const [activeTab, setActiveTab] = useState<"info" | "register" | "login">(
     "info"
   );
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    businessName: "",
+    businessType: "",
+    address: "",
+    city: "",
+    postalCode: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useScrollAnimations();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      const redirectTo = searchParams.get("redirect") || "/admin";
+      router.replace(redirectTo);
+    }
+  }, [user, router, searchParams]);
+
+  const validateForm = (type: "login" | "register") => {
+    const newErrors: Record<string, string> = {};
+
+    if (type === "register") {
+      if (!formData.businessName) {
+        newErrors.businessName = "Le nom de l'entreprise est requis";
+      }
+      if (!formData.businessType) {
+        newErrors.businessType = "Le type de commerce est requis";
+      }
+      if (!formData.address) {
+        newErrors.address = "L'adresse est requise";
+      }
+      if (!formData.city) {
+        newErrors.city = "La ville est requise";
+      }
+      if (!formData.postalCode) {
+        newErrors.postalCode = "Le code postal est requis";
+      }
+      if (!formData.email) {
+        newErrors.email = "L'email est requis";
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = "Email invalide";
+      }
+      if (!formData.password) {
+        newErrors.password = "Le mot de passe est requis";
+      } else if (!PASSWORD_REGEX.test(formData.password)) {
+        newErrors.password =
+          "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial";
+      }
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+      }
+    } else {
+      if (!formData.email) {
+        newErrors.email = "L'email est requis";
+      }
+      if (!formData.password) {
+        newErrors.password = "Le mot de passe est requis";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (type: "login" | "register") => {
+    if (!validateForm(type)) {
+      return;
+    }
+
+    try {
+      if (type === "login") {
+        await login({
+          email: formData.email,
+          password: formData.password,
+        });
+      } else {
+        await register({
+          email: formData.email,
+          password: formData.password,
+          businessName: formData.businessName,
+          businessType: formData.businessType,
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+        });
+      }
+    } catch (error) {
+      console.error("Auth error:", error);
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
 
   // Handle tab change
   const handleTabChange = (tab: "info" | "register" | "login") => {
@@ -177,7 +290,13 @@ export function PartnerAccess() {
                 <h3 className="text-2xl font-bold mb-6">
                   Inscription Partenaire
                 </h3>
-                <form className="space-y-4">
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSubmit("register");
+                  }}
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="business-name">
@@ -185,13 +304,24 @@ export function PartnerAccess() {
                       </Label>
                       <Input
                         id="business-name"
+                        name="businessName"
+                        value={formData.businessName}
+                        onChange={handleInputChange}
                         placeholder="Super Marché XYZ"
                       />
+                      {errors.businessName && (
+                        <p className="text-sm text-red-500">
+                          {errors.businessName}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="business-type">Type de commerce</Label>
                       <select
                         id="business-type"
+                        name="businessType"
+                        value={formData.businessType}
+                        onChange={handleInputChange}
                         className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background"
                       >
                         <option value="">Sélectionnez un type</option>
@@ -200,22 +330,56 @@ export function PartnerAccess() {
                         <option value="grocery">Épicerie</option>
                         <option value="mall">Centre commercial</option>
                       </select>
+                      {errors.businessType && (
+                        <p className="text-sm text-red-500">
+                          {errors.businessType}
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="address">Adresse</Label>
-                    <Input id="address" placeholder="123 rue du Commerce" />
+                    <Input
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="123 rue du Commerce"
+                    />
+                    {errors.address && (
+                      <p className="text-sm text-red-500">{errors.address}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="city">Ville</Label>
-                      <Input id="city" placeholder="Paris" />
+                      <Input
+                        id="city"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        placeholder="Paris"
+                      />
+                      {errors.city && (
+                        <p className="text-sm text-red-500">{errors.city}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="postal-code">Code postal</Label>
-                      <Input id="postal-code" placeholder="75001" />
+                      <Input
+                        id="postal-code"
+                        name="postalCode"
+                        value={formData.postalCode}
+                        onChange={handleInputChange}
+                        placeholder="75001"
+                      />
+                      {errors.postalCode && (
+                        <p className="text-sm text-red-500">
+                          {errors.postalCode}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -223,21 +387,49 @@ export function PartnerAccess() {
                     <Label htmlFor="email">Adresse e-mail</Label>
                     <Input
                       id="email"
+                      name="email"
                       type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       placeholder="contact@supermarche-xyz.com"
                     />
+                    {errors.email && (
+                      <p className="text-sm text-red-500">{errors.email}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="password">Mot de passe</Label>
-                      <Input id="password" type="password" />
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                      />
+                      {errors.password && (
+                        <p className="text-sm text-red-500">
+                          {errors.password}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="confirm-password">
                         Confirmer le mot de passe
                       </Label>
-                      <Input id="confirm-password" type="password" />
+                      <Input
+                        id="confirm-password"
+                        name="confirmPassword"
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                      />
+                      {errors.confirmPassword && (
+                        <p className="text-sm text-red-500">
+                          {errors.confirmPassword}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -246,10 +438,13 @@ export function PartnerAccess() {
                       variant="outline"
                       onClick={() => handleTabChange("info")}
                       type="button"
+                      disabled={isLoading}
                     >
                       Retour
                     </Button>
-                    <Button type="button">Créer mon compte</Button>
+                    <Button type="submit" disabled={isLoading}>
+                      {isLoading ? "Création en cours..." : "Créer mon compte"}
+                    </Button>
                   </div>
                 </form>
               </div>
@@ -260,19 +455,40 @@ export function PartnerAccess() {
                 <h3 className="text-2xl font-bold mb-6">
                   Connexion Partenaire
                 </h3>
-                <form className="space-y-4">
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSubmit("login");
+                  }}
+                >
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Adresse e-mail</Label>
                     <Input
                       id="login-email"
+                      name="email"
                       type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       placeholder="contact@supermarche-xyz.com"
                     />
+                    {errors.email && (
+                      <p className="text-sm text-red-500">{errors.email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="login-password">Mot de passe</Label>
-                    <Input id="login-password" type="password" />
+                    <Input
+                      id="login-password"
+                      name="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                    />
+                    {errors.password && (
+                      <p className="text-sm text-red-500">{errors.password}</p>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between flex-wrap gap-4">
@@ -305,10 +521,13 @@ export function PartnerAccess() {
                       variant="outline"
                       onClick={() => handleTabChange("info")}
                       type="button"
+                      disabled={isLoading}
                     >
                       Retour
                     </Button>
-                    <Button type="button">Se connecter</Button>
+                    <Button type="submit" disabled={isLoading}>
+                      {isLoading ? "Connexion en cours..." : "Se connecter"}
+                    </Button>
                   </div>
                 </form>
               </div>
