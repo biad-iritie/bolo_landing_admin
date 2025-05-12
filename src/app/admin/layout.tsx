@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth/use-auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,14 +21,20 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Settings, Store } from "lucide-react";
+import { Menu, LogOut, User, Settings, Store, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Loading } from "@/components/ui/loading";
 
 const sidebarItems = [
   {
     title: "Tableau de bord",
     href: "/admin",
     icon: Store,
+  },
+  {
+    title: "Promotions",
+    href: "/admin/products",
+    icon: Package,
   },
   {
     title: "Profil",
@@ -49,25 +55,18 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, verifyAuth, isLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.replace("/?redirect=/admin");
-    } else {
-      setIsLoading(false);
-    }
-  }, [user, router]);
+    verifyAuth();
+  }, [verifyAuth]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Chargement...</div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/?redirect=/admin");
+    }
+  }, [user, router, isLoading]);
 
   const handleLogout = async () => {
     await logout();
@@ -210,19 +209,32 @@ export default function AdminLayout({
 
       {/* Main Content */}
       <main className="min-h-screen pt-16 lg:pl-64 lg:pt-16">
-        <div className="container mx-auto p-4 md:p-6 lg:p-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+        {isLoading ? (
+          <motion.div
+            key="loading"
+            className="container mx-auto p-4 md:p-6 lg:p-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Loading className="min-h-screen" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key={pathname}
+            className="container mx-auto p-4 md:p-6 lg:p-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{
+              duration: 0.3,
+              ease: "easeInOut",
+            }}
+          >
+            {children}
+          </motion.div>
+        )}
       </main>
     </div>
   );
