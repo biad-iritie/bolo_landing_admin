@@ -24,7 +24,27 @@ export type RegisterData = {
   businessType: string;
   address: string;
   city: string;
-  postalCode: string;
+};
+
+export type PartnerProfile = {
+  phoneNumber?: string;
+  openingHours?: {
+    [key: string]: { open: string; close: string };
+  };
+  parkingAvailable?: boolean;
+  deliveryAvailable?: boolean;
+  paymentMethods?: string[];
+  storeDescription?: string;
+  storeLogo?: string;
+  socialMedia?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+  };
+  location?: {
+    latitude: number;
+    longitude: number;
+  }; // Additional services offered
 };
 
 export type ApiError = {

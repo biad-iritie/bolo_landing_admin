@@ -15,57 +15,57 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useProductStore } from "@/lib/store/product-store";
-import { Product } from "@/lib/types/product";
+import { usePromotionStore } from "@/lib/store/promotion-store";
+import { Promotion } from "@/lib/types/promotion";
 import { toast } from "sonner";
 
 const statusColors: Record<
-  Product["status"],
+  Promotion["status"],
   "default" | "secondary" | "destructive"
 > = {
   active: "default",
   inactive: "secondary",
 };
 
-const statusLabels: Record<Product["status"], string> = {
+const statusLabels: Record<Promotion["status"], string> = {
   active: "Actif",
   inactive: "Inactif",
 };
 
-export default function ProductDetailsPage() {
+export default function PromotionDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { products, deleteProduct } = useProductStore();
-  const [product, setProduct] = useState<Product | undefined>();
+  const { promotions, deletePromotion } = usePromotionStore();
+  const [promotion, setPromotion] = useState<Promotion | undefined>();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
-    const foundProduct = products.find((p) => p.id === params.id);
-    if (foundProduct) {
-      setProduct(foundProduct);
+    const foundPromotion = promotions.find((p) => p.id === params.id);
+    if (foundPromotion) {
+      setPromotion(foundPromotion);
     } else {
-      toast.error("Produit non trouvé");
-      router.push("/admin/products");
+      toast.error("Promotion non trouvée");
+      router.push("/admin/promotions");
     }
-  }, [params.id, products, router]);
+  }, [params.id, promotions, router]);
 
   const handleDelete = async () => {
-    if (product) {
+    if (promotion) {
       try {
-        await deleteProduct(product.id);
-        toast.success("Produit supprimé avec succès");
-        router.push("/admin/products");
+        await deletePromotion(promotion.id);
+        toast.success("Promotion supprimée avec succès");
+        router.push("/admin/promotions");
       } catch (error) {
         toast.error(
           error instanceof Error
             ? error.message
-            : "Erreur lors de la suppression du produit"
+            : "Erreur lors de la suppression de la promotion"
         );
       }
     }
   };
 
-  if (!product) {
+  if (!promotion) {
     return null;
   }
 
@@ -76,12 +76,16 @@ export default function ProductDetailsPage() {
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {promotion.name}
+          </h1>
         </div>
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
-            onClick={() => router.push(`/admin/products/${product.id}/edit`)}
+            onClick={() =>
+              router.push(`/admin/promotions/${promotion.id}/edit`)
+            }
           >
             <Pencil className="mr-2 h-4 w-4" />
             Modifier
@@ -106,20 +110,20 @@ export default function ProductDetailsPage() {
               <h3 className="text-sm font-medium text-muted-foreground">
                 Description
               </h3>
-              <p className="mt-1">{product.description}</p>
+              <p className="mt-1">{promotion.description}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
                 Catégorie
               </h3>
-              <p className="mt-1 capitalize">{product.category}</p>
+              <p className="mt-1 capitalize">{promotion.category}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
                 Statut
               </h3>
-              <Badge variant={statusColors[product.status]} className="mt-1">
-                {statusLabels[product.status]}
+              <Badge variant={statusColors[promotion.status]} className="mt-1">
+                {statusLabels[promotion.status]}
               </Badge>
             </div>
           </CardContent>
@@ -135,33 +139,35 @@ export default function ProductDetailsPage() {
                 Prix régulier
               </h3>
               <p className="mt-1">
-                {product.regularPrice.toLocaleString()} FCFA
+                {promotion.regularPrice.toLocaleString()} FCFA
               </p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
                 Prix promo
               </h3>
-              <p className="mt-1">{product.promoPrice.toLocaleString()} FCFA</p>
+              <p className="mt-1">
+                {promotion.promoPrice.toLocaleString()} FCFA
+              </p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
                 Remise
               </h3>
-              <p className="mt-1">{product.promoDiscount}%</p>
+              <p className="mt-1">{promotion.promoDiscount}%</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
                 Stock disponible
               </h3>
-              <p className="mt-1">{product.stockQuantity} unités</p>
+              <p className="mt-1">{promotion.stockQuantity} unités</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
                 Dernière mise à jour
               </h3>
               <p className="mt-1">
-                {new Date(product.updatedAt).toLocaleDateString("fr-FR", {
+                {new Date(promotion.updatedAt).toLocaleDateString("fr-FR", {
                   dateStyle: "long",
                 })}
               </p>
@@ -173,10 +179,10 @@ export default function ProductDetailsPage() {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Supprimer le produit</DialogTitle>
+            <DialogTitle>Supprimer la promotion</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est
-              irréversible.
+              Êtes-vous sûr de vouloir supprimer cette promotion ? Cette action
+              est irréversible.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Filter, BarChart3, Package } from "lucide-react";
+import { Plus, Search, Filter, BarChart3, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,10 +29,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useProductStore } from "@/lib/store/product-store";
-import { ProductCategory, ProductStatus } from "@/lib/types/product";
+import { usePromotionStore } from "@/lib/store/promotion-store";
+import { PromotionCategory, PromotionStatus } from "@/lib/types/promotion";
 
-const categoryLabels: Record<ProductCategory, string> = {
+const categoryLabels: Record<PromotionCategory, string> = {
   groceries: "Épicerie",
   electronics: "Électronique",
   clothing: "Vêtements",
@@ -42,38 +42,38 @@ const categoryLabels: Record<ProductCategory, string> = {
   other: "Autre",
 };
 
-const statusLabels: Record<ProductStatus, string> = {
+const statusLabels: Record<PromotionStatus, string> = {
   active: "Actif",
   inactive: "Inactif",
 };
 
-const statusColors: Record<ProductStatus, "default" | "secondary"> = {
+const statusColors: Record<PromotionStatus, "default" | "secondary"> = {
   active: "default",
   inactive: "secondary",
 };
 
-export default function ProductsPage() {
+export default function PromotionsPage() {
   const router = useRouter();
-  const { products } = useProductStore();
+  const { promotions } = usePromotionStore();
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<ProductCategory | "all">("all");
-  const [status, setStatus] = useState<ProductStatus | "all">("all");
+  const [category, setCategory] = useState<PromotionCategory | "all">("all");
+  const [status, setStatus] = useState<PromotionStatus | "all">("all");
 
-  const filteredProducts = products.filter((product) => {
+  const filteredPromotions = promotions.filter((promotion) => {
     const matchesSearch = search
-      ? product.name.toLowerCase().includes(search.toLowerCase()) ||
-        product.description?.toLowerCase().includes(search.toLowerCase())
+      ? promotion.name.toLowerCase().includes(search.toLowerCase()) ||
+        promotion.description?.toLowerCase().includes(search.toLowerCase())
       : true;
     const matchesCategory =
-      category !== "all" ? product.category === category : true;
-    const matchesStatus = status !== "all" ? product.status === status : true;
+      category !== "all" ? promotion.category === category : true;
+    const matchesStatus = status !== "all" ? promotion.status === status : true;
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const stats = {
-    total: products.length,
-    active: products.filter((p) => p.status === "active").length,
-    lowStock: products.filter((p) => p.stockQuantity <= p.lowStockThreshold)
+    total: promotions.length,
+    active: promotions.filter((p) => p.status === "active").length,
+    lowStock: promotions.filter((p) => p.stockQuantity <= p.lowStockThreshold)
       .length,
   };
 
@@ -86,7 +86,7 @@ export default function ProductsPage() {
             Gérez vos promotions et suivez leur performance
           </p>
         </div>
-        <Button onClick={() => router.push("/admin/products/new")}>
+        <Button onClick={() => router.push("/admin/promotions/new")}>
           <Plus className="mr-2 h-4 w-4" />
           Nouvelle Promotion
         </Button>
@@ -98,7 +98,7 @@ export default function ProductsPage() {
             <CardTitle className="text-sm font-medium">
               Total Promotions
             </CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <Gift className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
@@ -156,7 +156,9 @@ export default function ProductsPage() {
               </div>
               <Select
                 value={category}
-                onValueChange={(v) => setCategory(v as ProductCategory | "all")}
+                onValueChange={(v) =>
+                  setCategory(v as PromotionCategory | "all")
+                }
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Catégorie" />
@@ -172,7 +174,7 @@ export default function ProductsPage() {
               </Select>
               <Select
                 value={status}
-                onValueChange={(v) => setStatus(v as ProductStatus | "all")}
+                onValueChange={(v) => setStatus(v as PromotionStatus | "all")}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Statut" />
@@ -204,35 +206,39 @@ export default function ProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
+              {filteredPromotions.map((promotion) => (
                 <TableRow
-                  key={product.id}
+                  key={promotion.id}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => router.push(`/admin/products/${product.id}`)}
+                  onClick={() =>
+                    router.push(`/admin/promotions/${promotion.id}/edit`)
+                  }
                 >
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{categoryLabels[product.category]}</TableCell>
+                  <TableCell className="font-medium">
+                    {promotion.name}
+                  </TableCell>
+                  <TableCell>{categoryLabels[promotion.category]}</TableCell>
                   <TableCell>
-                    {product.regularPrice.toLocaleString()} FCFA
+                    {promotion.regularPrice.toLocaleString()} FCFA
                   </TableCell>
                   <TableCell>
-                    {product.promoPrice.toLocaleString()} FCFA
+                    {promotion.promoPrice.toLocaleString()} FCFA
                   </TableCell>
-                  <TableCell>{product.promoDiscount}%</TableCell>
+                  <TableCell>{promotion.promoDiscount}%</TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        product.stockQuantity <= product.lowStockThreshold
+                        promotion.stockQuantity <= promotion.lowStockThreshold
                           ? "destructive"
                           : "outline"
                       }
                     >
-                      {product.stockQuantity}
+                      {promotion.stockQuantity}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusColors[product.status]}>
-                      {statusLabels[product.status]}
+                    <Badge variant={statusColors[promotion.status]}>
+                      {statusLabels[promotion.status]}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -241,7 +247,7 @@ export default function ProductsPage() {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        router.push(`/admin/products/${product.id}/edit`);
+                        router.push(`/admin/promotions/${promotion.id}/edit`);
                       }}
                     >
                       Modifier

@@ -1,36 +1,133 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BOLO Landing Admin
 
-## Getting Started
+BOLO Landing Admin est une application web moderne de gestion des promotions, construite avec Next.js 14 et TypeScript. Cette plateforme permet aux administrateurs de gérer efficacement les promotions, suivre les stocks et optimiser les stratégies marketing.
 
-First, run the development server:
+## 🚀 Fonctionnalités
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Gestion des Promotions**
+  - Création et modification de promotions
+  - Gestion des prix (régulier et promotionnel)
+  - Calcul automatique des remises
+  - Catégorisation des promotions
+  - Suivi des statuts (actif/inactif)
+
+- **Gestion des Stocks**
+  - Suivi en temps réel des quantités
+  - Alertes de stock bas
+  - Seuils de réapprovisionnement personnalisables
+
+- **Interface Utilisateur**
+  - Design moderne et responsive
+  - Tableau de bord intuitif
+  - Filtres et recherche avancée
+  - Statistiques en temps réel
+
+- **Sécurité**
+  - Authentification sécurisée
+  - Gestion des accès administrateur
+  - Validation des données
+
+## 🛠️ Technologies
+
+- **Frontend**
+  - Next.js 14 (App Router)
+  - TypeScript
+  - Tailwind CSS
+  - Shadcn/ui
+  - Zustand (State Management)
+  - React Hook Form
+  - Zod (Validation)
+
+- **Outils de Développement**
+  - ESLint
+  - Prettier
+  - TypeScript
+  - Git
+
+## 📋 Prérequis
+
+- Node.js 18.x ou supérieur
+- npm ou yarn
+- Git
+
+## 🚀 Installation
+
+1. **Cloner le repository**
+   ```bash
+   git clone https://github.com/votre-username/landing_admin.git
+   cd landing_admin
+   ```
+
+2. **Installer les dépendances**
+   ```bash
+   npm install
+   # ou
+   yarn install
+   ```
+
+3. **Configurer les variables d'environnement**
+   ```bash
+   cp .env.example .env.local
+   ```
+   Modifiez les variables dans `.env.local` selon votre environnement.
+
+4. **Lancer le serveur de développement**
+   ```bash
+   npm run dev
+   # ou
+   yarn dev
+   ```
+
+5. **Accéder à l'application**
+   Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
+
+## 🏗️ Structure du Projet
+
+```
+landing_admin/
+├── src/
+│   ├── app/                    # Routes et pages Next.js
+│   │   ├── admin/             # Interface d'administration
+│   │   └── api/               # API Routes
+│   ├── components/            # Composants React réutilisables
+│   │   ├── ui/               # Composants UI de base
+│   │   └── promotions/       # Composants spécifiques aux promotions
+│   ├── lib/                   # Utilitaires et configurations
+│   │   ├── store/            # État global (Zustand)
+│   │   ├── types/            # Types TypeScript
+│   │   └── promotions/       # Logique métier des promotions
+│   └── styles/               # Styles globaux
+├── public/                    # Assets statiques
+└── ...
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔧 Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Variables d'Environnement
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Créez un fichier `.env.local` à la racine du projet avec les variables suivantes :
 
-## Learn More
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
+# Ajoutez d'autres variables selon vos besoins
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📝 Utilisation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Gestion des Promotions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Créer une Promotion**
+   - Accédez à `/admin/promotions/new`
+   - Remplissez le formulaire avec les détails de la promotion
+   - Validez pour créer la promotion
 
-## Deploy on Vercel
+2. **Modifier une Promotion**
+   - Accédez à la liste des promotions
+   - Cliquez sur "Modifier" pour la promotion souhaitée
+   - Mettez à jour les informations
+   - Sauvegardez les modifications
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Gérer les Stocks**
+   - Consultez le tableau de bord pour voir les alertes de stock
+   - Mettez à jour les quantités selon les besoins
+   - Configurez les seuils de réapprovisionnement

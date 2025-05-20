@@ -14,16 +14,17 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { useProductStore } from "@/lib/store/product-store";
+import { usePromotionStore } from "@/lib/store/promotion-store";
 import {
-  Product,
-  CreateProductData,
-  UpdateProductData,
-} from "@/lib/types/product";
+  Promotion,
+  CreatePromotionData,
+  UpdatePromotionData,
+  PromotionCategory,
+} from "@/lib/types/promotion";
 import {
-  createProductSchema,
-  updateProductSchema,
-} from "@/lib/products/schema";
+  createPromotionSchema,
+  updatePromotionSchema,
+} from "@/lib/promotions/schema";
 import {
   Form,
   FormControl,
@@ -38,14 +39,7 @@ type FormValues = {
   id?: string;
   name: string;
   description?: string;
-  category:
-    | "groceries"
-    | "electronics"
-    | "clothing"
-    | "home"
-    | "beauty"
-    | "sports"
-    | "other";
+  category: PromotionCategory;
   regularPrice: number;
   promoPrice: number;
   promoDiscount: number;
@@ -60,7 +54,7 @@ interface BaseFormProps {
   schema: z.ZodType<Partial<FormValues>>;
 }
 
-function BaseProductForm({ onSubmit, defaultValues, schema }: BaseFormProps) {
+function BasePromotionForm({ onSubmit, defaultValues, schema }: BaseFormProps) {
   const form = useForm<FormValues & FieldValues>({
     resolver: zodResolver(schema as z.ZodType<FormValues & FieldValues>),
     defaultValues,
@@ -263,19 +257,19 @@ function BaseProductForm({ onSubmit, defaultValues, schema }: BaseFormProps) {
   );
 }
 
-interface ProductFormProps {
+interface PromotionFormProps {
   mode: "create" | "edit";
-  product?: Product;
+  promotion?: Promotion;
 }
 
-export function ProductForm({ mode, product }: ProductFormProps) {
+export function PromotionForm({ mode, promotion }: PromotionFormProps) {
   const router = useRouter();
-  const { createProduct, updateProduct } = useProductStore();
+  const { createPromotion, updatePromotion } = usePromotionStore();
 
   const handleSubmit = async (data: FormValues) => {
     try {
       if (mode === "create") {
-        await createProduct(data as CreateProductData);
+        await createPromotion(data as CreatePromotionData);
         toast.success("Promotion créée avec succès");
       } else {
         const { id, ...updateData } = data;
@@ -283,10 +277,10 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           toast.error("ID de la promotion manquant");
           return;
         }
-        await updateProduct(id, updateData as UpdateProductData);
+        await updatePromotion(id, updateData as UpdatePromotionData);
         toast.success("Promotion mise à jour avec succès");
       }
-      router.push("/admin/products");
+      router.push("/admin/promotions");
     } catch (err) {
       console.error("Error submitting form:", err);
       toast.error(
@@ -309,18 +303,18 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           stockQuantity: 0,
           lowStockThreshold: 10,
         }
-      : product
+      : promotion
       ? {
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          category: product.category,
-          regularPrice: product.regularPrice,
-          promoPrice: product.promoPrice,
-          promoDiscount: product.promoDiscount,
-          stockQuantity: product.stockQuantity,
-          lowStockThreshold: product.lowStockThreshold,
-          status: product.status,
+          id: promotion.id,
+          name: promotion.name,
+          description: promotion.description,
+          category: promotion.category,
+          regularPrice: promotion.regularPrice,
+          promoPrice: promotion.promoPrice,
+          promoDiscount: promotion.promoDiscount,
+          stockQuantity: promotion.stockQuantity,
+          lowStockThreshold: promotion.lowStockThreshold,
+          status: promotion.status,
         }
       : {
           name: "",
@@ -338,13 +332,13 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   }
 
   return (
-    <BaseProductForm
+    <BasePromotionForm
       onSubmit={handleSubmit}
       defaultValues={defaultValues}
       schema={
         mode === "create"
-          ? (createProductSchema as z.ZodType<Partial<FormValues>>)
-          : (updateProductSchema as z.ZodType<Partial<FormValues>>)
+          ? (createPromotionSchema as z.ZodType<Partial<FormValues>>)
+          : (updatePromotionSchema as z.ZodType<Partial<FormValues>>)
       }
     />
   );

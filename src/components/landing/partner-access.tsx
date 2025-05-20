@@ -35,8 +35,7 @@ export function PartnerAccess() {
     businessName: "",
     businessType: "",
     address: "",
-    city: "",
-    postalCode: "",
+    city: "Abidjan", // Default city
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -62,12 +61,6 @@ export function PartnerAccess() {
       }
       if (!formData.address) {
         newErrors.address = "L'adresse est requise";
-      }
-      if (!formData.city) {
-        newErrors.city = "La ville est requise";
-      }
-      if (!formData.postalCode) {
-        newErrors.postalCode = "Le code postal est requis";
       }
       if (!formData.email) {
         newErrors.email = "L'email est requis";
@@ -107,7 +100,7 @@ export function PartnerAccess() {
           email: formData.email,
           password: formData.password,
         });
-      } else {
+      } else if (type === "register") {
         await register({
           email: formData.email,
           password: formData.password,
@@ -115,7 +108,6 @@ export function PartnerAccess() {
           businessType: formData.businessType,
           address: formData.address,
           city: formData.city,
-          postalCode: formData.postalCode,
         });
       }
     } catch (error) {
@@ -352,35 +344,18 @@ export function PartnerAccess() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">Ville</Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        placeholder="Paris"
-                      />
-                      {errors.city && (
-                        <p className="text-sm text-red-500">{errors.city}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="postal-code">Code postal</Label>
-                      <Input
-                        id="postal-code"
-                        name="postalCode"
-                        value={formData.postalCode}
-                        onChange={handleInputChange}
-                        placeholder="75001"
-                      />
-                      {errors.postalCode && (
-                        <p className="text-sm text-red-500">
-                          {errors.postalCode}
-                        </p>
-                      )}
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">Ville</Label>
+                    <Input
+                      id="city"
+                      name="city"
+                      value={formData.city}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Actuellement, nous sommes uniquement disponibles à Abidjan
+                    </p>
                   </div>
 
                   <div className="space-y-2">

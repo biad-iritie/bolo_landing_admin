@@ -21,7 +21,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Settings, Store, Package } from "lucide-react";
+import { Menu, LogOut, User, Settings, Store, GiftIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Loading } from "@/components/ui/loading";
 
@@ -33,8 +33,8 @@ const sidebarItems = [
   },
   {
     title: "Promotions",
-    href: "/admin/products",
-    icon: Package,
+    href: "/admin/promotions",
+    icon: GiftIcon,
   },
   {
     title: "Profil",
@@ -212,7 +212,7 @@ export default function AdminLayout({
         {isLoading ? (
           <motion.div
             key="loading"
-            className="container mx-auto p-4 md:p-6 lg:p-8"
+            className="container max-w-7xl p-4 md:p-6 lg:p-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -223,7 +223,7 @@ export default function AdminLayout({
         ) : (
           <motion.div
             key={pathname}
-            className="container mx-auto p-4 md:p-6 lg:p-8"
+            className="container max-w-7xl p-4 md:p-6 lg:p-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
