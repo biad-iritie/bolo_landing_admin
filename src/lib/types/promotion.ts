@@ -1,3 +1,5 @@
+import { Product, ProductCategory } from "./product";
+
 export type PromotionCategory =
   | "groceries"
   | "electronics"
@@ -11,10 +13,8 @@ export type PromotionStatus = "active" | "inactive";
 
 export interface Promotion {
   id: string;
-  name: string;
-  description?: string;
-  category: PromotionCategory;
-  regularPrice: number;
+  productId: string;
+  product: Product;
   promoPrice: number;
   promoDiscount: number;
   stockQuantity: number;
@@ -25,10 +25,7 @@ export interface Promotion {
 }
 
 export interface CreatePromotionData {
-  name: string;
-  description?: string;
-  category: PromotionCategory;
-  regularPrice: number;
+  productId: string;
   promoPrice: number;
   promoDiscount: number;
   stockQuantity: number;
@@ -37,10 +34,6 @@ export interface CreatePromotionData {
 }
 
 export interface UpdatePromotionData {
-  name?: string;
-  description?: string;
-  category?: PromotionCategory;
-  regularPrice?: number;
   promoPrice?: number;
   promoDiscount?: number;
   stockQuantity?: number;
@@ -65,3 +58,6 @@ export interface PromotionListResponse {
   page: number;
   limit: number;
 }
+
+// Re-export product category for convenience
+export type { ProductCategory };

@@ -22,15 +22,13 @@ const getCookie = (name: string): string | null => {
 
 // Mock token storage (simulating cookies)
 let mockTokenStore = {
-  accessToken: null as string | null,
-  refreshToken: null as string | null,
+  token: null as string | null,
 };
 
 // Initialize token store from cookies
 const initializeTokenStore = () => {
   mockTokenStore = {
-    accessToken: getCookie("accessToken"),
-    refreshToken: getCookie("refreshToken"),
+    token: getCookie("token"),
   };
 };
 
@@ -44,25 +42,18 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Helper to generate tokens
 const generateTokens = () => ({
-  accessToken: `mock-access-token-${Date.now()}`,
-  refreshToken: `mock-refresh-token-${Date.now()}`,
+  token: `mock-token-${Date.now()}`,
 });
 
 // Helper to set cookies in document
-const setCookies = (accessToken: string, refreshToken: string) => {
-  // In a real app, these would be HTTP-only cookies set by the backend
-  // For mock purposes, we'll simulate the cookie behavior
-  document.cookie = `accessToken=${accessToken}; path=/`;
-  document.cookie = `refreshToken=${refreshToken}; path=/`;
+const setCookies = (token: string) => {
+  document.cookie = `token=${token}; path=/`;
 };
 
 // Helper to clear cookies
 const clearCookies = () => {
-  document.cookie =
-    "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  document.cookie =
-    "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  mockTokenStore = { accessToken: null, refreshToken: null };
+  document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  mockTokenStore = { token: null };
 };
 
 // Mock API service
@@ -86,10 +77,10 @@ export const mockAuthApi = {
     // Generate new tokens
     const tokens = generateTokens();
     mockTokenStore = tokens;
-    setCookies(tokens.accessToken, tokens.refreshToken);
+    setCookies(tokens.token);
 
     return {
-      ...tokens,
+      token: tokens.token,
       user,
     };
   },
@@ -116,10 +107,10 @@ export const mockAuthApi = {
     // Generate new tokens
     const tokens = generateTokens();
     mockTokenStore = tokens;
-    setCookies(tokens.accessToken, tokens.refreshToken);
+    setCookies(tokens.token);
 
     return {
-      ...tokens,
+      token: tokens.token,
       user: newUser,
     };
   },
@@ -128,18 +119,18 @@ export const mockAuthApi = {
     await delay(800);
 
     // Check if we have a refresh token
-    if (!mockTokenStore.refreshToken) {
+    if (!mockTokenStore.token) {
       throw new Error("Non authentifié");
     }
 
     // Generate new tokens
     const tokens = generateTokens();
     mockTokenStore = tokens;
-    setCookies(tokens.accessToken, tokens.refreshToken);
+    setCookies(tokens.token);
 
     // Return the first user for simplicity
     return {
-      ...tokens,
+      token: tokens.token,
       user: mockUsers[0],
     };
   },
@@ -156,23 +147,21 @@ export const mockAuthApi = {
     initializeTokenStore();
 
     // Check if we have an access token
-    if (!mockTokenStore.accessToken || !mockTokenStore.refreshToken) {
+    if (!mockTokenStore.token) {
       throw new Error("Non authentifié");
     }
 
     // In a real app, we would validate the token
     // For mock purposes, we'll just return the user if we have a token
     return {
-      accessToken: mockTokenStore.accessToken,
-      refreshToken: mockTokenStore.refreshToken,
+      token: mockTokenStore.token!,
       user: mockUsers[0],
     };
   },
 
   // Helper method to check if user is authenticated
   isAuthenticated(): boolean {
-    // Re-initialize from cookies before checking
     initializeTokenStore();
-    return !!mockTokenStore.accessToken;
+    return !!mockTokenStore.token;
   },
 };

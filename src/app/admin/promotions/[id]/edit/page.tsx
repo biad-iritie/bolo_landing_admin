@@ -2,32 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useProductStore } from "@/lib/store/product-store";
-import { ProductForm } from "@/components/products/product-form";
-import { Product } from "@/lib/types/promotion";
+import { usePromotionStore } from "@/lib/store/promotion-store";
+import { PromotionForm } from "@/components/promotions/promotion-form";
+import { Promotion } from "@/lib/types/promotion";
 import { toast } from "sonner";
 
 export default function EditProductPage() {
   const params = useParams();
-  const { products } = useProductStore();
-  const [product, setProduct] = useState<Product | undefined>();
-
+  const { promotions } = usePromotionStore();
+  const [promotion, setPromotion] = useState<Promotion | undefined>();
+  const partnerId = "1";
   useEffect(() => {
-    const foundProduct = products.find((p) => p.id === params.id);
-    if (foundProduct) {
-      setProduct(foundProduct);
+    const foundPromotion = promotions.find((p) => p.id === params.id);
+    if (foundPromotion) {
+      setPromotion(foundPromotion);
     } else {
-      toast.error("Produit non trouvé");
+      toast.error("Promotion non trouvée");
     }
-  }, [params.id, products]);
+  }, [params.id, promotions]);
 
-  if (!product) {
+  if (!promotion) {
     return null;
   }
 
   return (
     <div className="container mx-auto py-6">
-      <ProductForm mode="edit" product={product} />
+      <PromotionForm mode="edit" promotion={promotion} partnerId={partnerId} />
     </div>
   );
 }

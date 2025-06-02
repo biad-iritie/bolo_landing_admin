@@ -21,7 +21,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Settings, Store, GiftIcon } from "lucide-react";
+import {
+  Menu,
+  LogOut,
+  User,
+  Settings,
+  Store,
+  GiftIcon,
+  Package,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Loading } from "@/components/ui/loading";
 
@@ -30,6 +38,11 @@ const sidebarItems = [
     title: "Tableau de bord",
     href: "/admin",
     icon: Store,
+  },
+  {
+    title: "Commandes",
+    href: "/admin/orders",
+    icon: Package,
   },
   {
     title: "Promotions",

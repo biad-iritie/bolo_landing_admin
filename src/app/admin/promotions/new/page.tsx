@@ -1,11 +1,12 @@
 "use client";
 
-import { ProductForm } from "@/components/products/product-form";
+import { PromotionForm } from "@/components/promotions/promotion-form";
 
 export default function NewProductPage() {
+  const partnerId = "1";
   return (
     <div className="container mx-auto py-6">
-      <ProductForm mode="create" />
+      <PromotionForm mode="create" partnerId={partnerId} />
     </div>
   );
 }

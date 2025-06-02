@@ -15,12 +15,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { usePromotionStore } from "@/lib/store/promotion-store";
+import { useProductStore } from "@/lib/store/product-store";
 import {
   Promotion,
   CreatePromotionData,
   UpdatePromotionData,
   PromotionCategory,
 } from "@/lib/types/promotion";
+import { ProductSearchResult } from "@/lib/types/product";
 import {
   createPromotionSchema,
   updatePromotionSchema,
@@ -34,10 +36,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProductSearchInput } from "./product-search-input";
+import { useEffect } from "react";
 
 type FormValues = {
   id?: string;
-  name: string;
+  productName: string;
   description?: string;
   category: PromotionCategory;
   regularPrice: number;
@@ -52,13 +56,49 @@ interface BaseFormProps {
   onSubmit: (data: FormValues) => Promise<void>;
   defaultValues: FormValues;
   schema: z.ZodType<Partial<FormValues>>;
+  partnerId: string;
 }
 
-function BasePromotionForm({ onSubmit, defaultValues, schema }: BaseFormProps) {
+function BasePromotionForm({
+  onSubmit,
+  defaultValues,
+  schema,
+  partnerId,
+}: BaseFormProps) {
   const form = useForm<FormValues & FieldValues>({
     resolver: zodResolver(schema as z.ZodType<FormValues & FieldValues>),
     defaultValues,
   });
+
+  // Watch regularPrice and promoPrice for discount calculation
+  const regularPrice = form.watch("regularPrice");
+  const promoPrice = form.watch("promoPrice");
+
+  // Calculate discount when both prices are present
+  useEffect(() => {
+    if (regularPrice && promoPrice && regularPrice > 0 && promoPrice >= 0) {
+      const discount = ((regularPrice - promoPrice) / regularPrice) * 100;
+      if (!isNaN(discount) && discount >= 0 && discount <= 100) {
+        form.setValue("promoDiscount", Math.round(discount));
+      } else {
+        form.setValue("promoDiscount", 0);
+      }
+    }
+  }, [regularPrice, promoPrice, form]);
+
+  const handleProductSelect = (
+    value: string,
+    product?: ProductSearchResult
+  ) => {
+    if (product) {
+      form.setValue("productName", product.name);
+      form.setValue("description", product.description || "");
+      form.setValue("category", product.category);
+      form.setValue("regularPrice", product.regularPrice);
+    } else {
+      form.setValue("productName", value);
+    }
+  };
 
   return (
     <Card>
@@ -72,12 +112,18 @@ function BasePromotionForm({ onSubmit, defaultValues, schema }: BaseFormProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="name"
+              name="productName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom</FormLabel>
+                  {/* <FormLabel>Produit</FormLabel> */}
                   <FormControl>
-                    <Input placeholder="Nom du produit" {...field} />
+                    <ProductSearchInput
+                      value={field.value}
+                      onChange={handleProductSelect}
+                      partnerId={partnerId}
+                      category={form.watch("category")}
+                      error={form.formState.errors.productName?.message}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -191,8 +237,10 @@ function BasePromotionForm({ onSubmit, defaultValues, schema }: BaseFormProps) {
                         max="100"
                         placeholder="0"
                         {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
+                        value={field.value || 0}
+                        disabled={!!(regularPrice && promoPrice)}
+                        className={
+                          regularPrice && promoPrice ? "bg-gray-100" : ""
                         }
                       />
                     </FormControl>
@@ -260,24 +308,97 @@ function BasePromotionForm({ onSubmit, defaultValues, schema }: BaseFormProps) {
 interface PromotionFormProps {
   mode: "create" | "edit";
   promotion?: Promotion;
+  partnerId: string;
 }
 
-export function PromotionForm({ mode, promotion }: PromotionFormProps) {
+export function PromotionForm({
+  mode,
+  promotion,
+  partnerId,
+}: PromotionFormProps) {
   const router = useRouter();
   const { createPromotion, updatePromotion } = usePromotionStore();
+  const { createProduct, updateProduct } = useProductStore();
 
   const handleSubmit = async (data: FormValues) => {
     try {
       if (mode === "create") {
-        await createPromotion(data as CreatePromotionData);
+        // First create or update the product
+        const productData = {
+          name: data.productName,
+          description: data.description,
+          category: data.category,
+          regularPrice: data.regularPrice,
+          partnerId,
+        };
+
+        let product;
+        try {
+          // Try to create a new product
+          product = await createProduct(productData);
+        } catch (error) {
+          if (error instanceof Error && error.message.includes("existe déjà")) {
+            // If product exists, update it
+            const existingProduct = await useProductStore
+              .getState()
+              .searchProducts({
+                query: data.productName,
+                category: data.category,
+                partnerId,
+              });
+
+            if (existingProduct.length > 0) {
+              product = await updateProduct(existingProduct[0].id, productData);
+            } else {
+              throw error;
+            }
+          } else {
+            throw error;
+          }
+        }
+
+        // Then create the promotion
+        const promotionData: CreatePromotionData = {
+          productId: product.id,
+          promoPrice: data.promoPrice,
+          promoDiscount: data.promoDiscount,
+          stockQuantity: data.stockQuantity,
+          lowStockThreshold: data.lowStockThreshold,
+          status: data.status || "active",
+        };
+
+        await createPromotion(promotionData);
         toast.success("Promotion créée avec succès");
       } else {
-        const { id, ...updateData } = data;
-        if (!id) {
-          toast.error("ID de la promotion manquant");
+        console.log("data", data);
+
+        const { id } = data;
+        if (!id || !promotion) {
+          toast.error("Données de promotion invalides");
           return;
         }
-        await updatePromotion(id, updateData as UpdatePromotionData);
+
+        // Update both product and promotion
+        const productData = {
+          name: data.productName,
+          description: data.description,
+          category: data.category,
+          regularPrice: data.regularPrice,
+        };
+
+        const promotionData: UpdatePromotionData = {
+          promoPrice: data.promoPrice,
+          promoDiscount: data.promoDiscount,
+          stockQuantity: data.stockQuantity,
+          lowStockThreshold: data.lowStockThreshold,
+          status: data.status,
+        };
+
+        await Promise.all([
+          updateProduct(promotion.product.id, productData),
+          updatePromotion(id, promotionData),
+        ]);
+
         toast.success("Promotion mise à jour avec succès");
       }
       router.push("/admin/promotions");
@@ -294,7 +415,7 @@ export function PromotionForm({ mode, promotion }: PromotionFormProps) {
   const defaultValues =
     mode === "create"
       ? {
-          name: "",
+          productName: "",
           description: "",
           category: "other" as const,
           regularPrice: 0,
@@ -306,10 +427,10 @@ export function PromotionForm({ mode, promotion }: PromotionFormProps) {
       : promotion
       ? {
           id: promotion.id,
-          name: promotion.name,
-          description: promotion.description,
-          category: promotion.category,
-          regularPrice: promotion.regularPrice,
+          productName: promotion.product.name,
+          description: promotion.product.description,
+          category: promotion.product.category,
+          regularPrice: promotion.product.regularPrice,
           promoPrice: promotion.promoPrice,
           promoDiscount: promotion.promoDiscount,
           stockQuantity: promotion.stockQuantity,
@@ -317,7 +438,7 @@ export function PromotionForm({ mode, promotion }: PromotionFormProps) {
           status: promotion.status,
         }
       : {
-          name: "",
+          productName: "",
           description: "",
           category: "other" as const,
           regularPrice: 0,
@@ -340,6 +461,7 @@ export function PromotionForm({ mode, promotion }: PromotionFormProps) {
           ? (createPromotionSchema as z.ZodType<Partial<FormValues>>)
           : (updatePromotionSchema as z.ZodType<Partial<FormValues>>)
       }
+      partnerId={partnerId}
     />
   );
 }

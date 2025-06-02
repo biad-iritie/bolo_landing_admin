@@ -1,85 +1,129 @@
 import { create } from "zustand";
-import { User, LoginCredentials, RegisterData } from "./types";
+import { persist } from "zustand/middleware";
 import { authApi } from "./api";
-import { toast } from "sonner";
+import { LoginCredentials, RegisterData, User } from "./types";
 
 interface AuthState {
   user: User | null;
+  token: string | null;
   isLoading: boolean;
+  error: Error | null;
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
-  verifyAuth: () => Promise<void>;
+  refreshToken: () => Promise<void>;
+  verifyToken: () => Promise<void>;
 }
 
-type AuthStore = {
-  set: (state: Partial<AuthState>) => void;
-};
+export const useAuth = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      token: null,
+      isLoading: false,
+      error: null,
+      isAuthenticated: false,
 
-export const useAuth = create<AuthState>((set: AuthStore["set"]) => ({
-  user: null,
-  isLoading: false,
-  isAuthenticated: false,
+      login: async (credentials) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await authApi.login(credentials);
+          set({
+            user: response.user,
+            token: response.token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({ error: error as Error, isLoading: false });
+          throw error;
+        }
+      },
 
-  login: async (credentials: LoginCredentials) => {
-    set({ isLoading: true });
-    try {
-      const { user } = await authApi.login(credentials);
-      set({ user, isAuthenticated: true });
-      toast.success("Connexion réussie");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Erreur de connexion";
-      toast.error(message);
-      throw error;
-    } finally {
-      set({ isLoading: false });
+      register: async (data) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await authApi.register(data);
+          set({
+            user: response.user,
+            token: response.token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({ error: error as Error, isLoading: false });
+          throw error;
+        }
+      },
+
+      logout: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          await authApi.logout();
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({ error: error as Error, isLoading: false });
+          throw error;
+        }
+      },
+
+      refreshToken: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await authApi.refreshToken();
+          set({
+            user: response.user,
+            token: response.token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: error as Error,
+          });
+          throw error;
+        }
+      },
+
+      verifyToken: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await authApi.verifyToken();
+          set({
+            user: response.user,
+            token: response.token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: error as Error,
+          });
+          throw error;
+        }
+      },
+    }),
+    {
+      name: "auth-storage",
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
-  },
-
-  register: async (data: RegisterData) => {
-    set({ isLoading: true });
-    try {
-      const { user } = await authApi.register(data);
-      set({ user, isAuthenticated: true });
-      toast.success("Inscription réussie");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Erreur d'inscription";
-      toast.error(message);
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  logout: async () => {
-    set({ isLoading: true });
-    try {
-      await authApi.logout();
-      set({ user: null, isAuthenticated: false });
-      toast.success("Déconnexion réussie");
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Erreur lors de la déconnexion";
-      toast.error(message);
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  verifyAuth: async () => {
-    set({ isLoading: true });
-    try {
-      const { user } = await authApi.verifyToken();
-      set({ user, isAuthenticated: true });
-    } catch {
-      set({ user: null, isAuthenticated: false });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-}));
+  )
+);

@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useScrollAnimations } from "@/lib/animation";
 import { useAuth } from "@/lib/auth/use-auth";
+import { usePartners, CreatePartnerData } from "@/lib/api/hooks/usePartners";
+import { toast } from "sonner";
 
 // Password validation regex
 const PASSWORD_REGEX =
@@ -24,7 +26,9 @@ const PASSWORD_REGEX =
 export function PartnerAccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isLoading, login, register } = useAuth();
+  const { user, isLoading, login } = useAuth();
+  const { createPartner, states } = usePartners();
+  const { loading: isCreating } = states.create;
   const [activeTab, setActiveTab] = useState<"info" | "register" | "login">(
     "info"
   );
@@ -93,7 +97,6 @@ export function PartnerAccess() {
     if (!validateForm(type)) {
       return;
     }
-
     try {
       if (type === "login") {
         await login({
@@ -101,17 +104,31 @@ export function PartnerAccess() {
           password: formData.password,
         });
       } else if (type === "register") {
-        await register({
+        const partnerData: CreatePartnerData = {
+          name: formData.businessName,
+          type_commerce: formData.businessType,
+          adresse: formData.address,
           email: formData.email,
+          ville: formData.city,
           password: formData.password,
-          businessName: formData.businessName,
-          businessType: formData.businessType,
-          address: formData.address,
-          city: formData.city,
-        });
+        };
+
+        await createPartner(partnerData);
+        toast.success("Compte partenaire créé avec succès!");
+
+        // Automatically log in the user after successful registration
+        // await login({
+        //   email: formData.email,
+        //   password: formData.password,
+        // });
       }
     } catch (error) {
       console.error("Auth error:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Une erreur est survenue lors de la création du compte"
+      );
     }
   };
 
@@ -329,7 +346,37 @@ export function PartnerAccess() {
                       )}
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">Ville</Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        value={formData.city}
+                        disabled
+                        className="bg-muted"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Actuellement, nous sommes uniquement disponibles à
+                        Abidjan
+                      </p>
+                    </div>
 
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Adresse e-mail</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="contact@supermarche-xyz.com"
+                      />
+                      {errors.email && (
+                        <p className="text-sm text-red-500">{errors.email}</p>
+                      )}
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="address">Adresse</Label>
                     <Input
@@ -341,35 +388,6 @@ export function PartnerAccess() {
                     />
                     {errors.address && (
                       <p className="text-sm text-red-500">{errors.address}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="city">Ville</Label>
-                    <Input
-                      id="city"
-                      name="city"
-                      value={formData.city}
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Actuellement, nous sommes uniquement disponibles à Abidjan
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Adresse e-mail</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="contact@supermarche-xyz.com"
-                    />
-                    {errors.email && (
-                      <p className="text-sm text-red-500">{errors.email}</p>
                     )}
                   </div>
 
@@ -413,12 +431,14 @@ export function PartnerAccess() {
                       variant="outline"
                       onClick={() => handleTabChange("info")}
                       type="button"
-                      disabled={isLoading}
+                      disabled={isLoading || isCreating}
                     >
                       Retour
                     </Button>
-                    <Button type="submit" disabled={isLoading}>
-                      {isLoading ? "Création en cours..." : "Créer mon compte"}
+                    <Button type="submit" disabled={isLoading || isCreating}>
+                      {isLoading || isCreating
+                        ? "Création en cours..."
+                        : "Créer mon compte"}
                     </Button>
                   </div>
                 </form>

@@ -72,10 +72,10 @@ BOLO Landing Admin est une application web moderne de gestion des promotions, co
    Modifiez les variables dans `.env.local` selon votre environnement.
 
 4. **Lancer le serveur de développement**
-   ```bash
-   npm run dev
+```bash
+npm run dev
    # ou
-   yarn dev
+yarn dev
    ```
 
 5. **Accéder à l'application**

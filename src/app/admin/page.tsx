@@ -3,9 +3,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/use-auth";
 import { Store, Package, ShoppingCart, TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const router = useRouter();
 
   const stats = [
     {
@@ -18,13 +21,15 @@ export default function AdminDashboard() {
           : "En attente d'approbation",
       color:
         user?.storeStatus === "approved" ? "text-green-500" : "text-yellow-500",
+      onClick: undefined,
     },
     {
-      title: "Produits",
+      title: "Promotions",
       value: "0",
       icon: Package,
-      description: "Produits en ligne",
+      description: "Promotions en ligne",
       color: "text-blue-500",
+      onClick: () => router.push("/admin/promotions"),
     },
     {
       title: "Commandes",
@@ -32,6 +37,7 @@ export default function AdminDashboard() {
       icon: ShoppingCart,
       description: "Commandes en attente",
       color: "text-purple-500",
+      onClick: () => router.push("/admin/orders?tab=list&status=pending"),
     },
     {
       title: "Ventes",
@@ -39,6 +45,7 @@ export default function AdminDashboard() {
       icon: TrendingUp,
       description: "Ventes du mois",
       color: "text-emerald-500",
+      onClick: undefined,
     },
   ];
 
@@ -51,7 +58,14 @@ export default function AdminDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title}>
+          <Card
+            key={stat.title}
+            className={cn(
+              "transition-colors",
+              stat.onClick && "cursor-pointer hover:bg-accent"
+            )}
+            onClick={stat.onClick}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}

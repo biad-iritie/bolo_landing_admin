@@ -3,7 +3,7 @@ import * as z from "zod";
 export const promotionStatusSchema = z.enum(["active", "inactive"]);
 
 const basePromotionSchema = z.object({
-  name: z.string().min(1, "Le nom est requis"),
+  productName: z.string().min(1, "Le nom du produit est requis"),
   description: z.string().optional(),
   category: z.enum([
     "groceries",

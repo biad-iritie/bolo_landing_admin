@@ -77,7 +77,7 @@ export default function PromotionDetailsPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-3xl font-bold tracking-tight">
-            {promotion.name}
+            {promotion.product.name}
           </h1>
         </div>
         <div className="flex items-center space-x-2">
@@ -110,13 +110,13 @@ export default function PromotionDetailsPage() {
               <h3 className="text-sm font-medium text-muted-foreground">
                 Description
               </h3>
-              <p className="mt-1">{promotion.description}</p>
+              <p className="mt-1">{promotion.product.description}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
                 Catégorie
               </h3>
-              <p className="mt-1 capitalize">{promotion.category}</p>
+              <p className="mt-1 capitalize">{promotion.product.category}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
@@ -139,7 +139,7 @@ export default function PromotionDetailsPage() {
                 Prix régulier
               </h3>
               <p className="mt-1">
-                {promotion.regularPrice.toLocaleString()} FCFA
+                {promotion.product.regularPrice.toLocaleString()} FCFA
               </p>
             </div>
             <div>

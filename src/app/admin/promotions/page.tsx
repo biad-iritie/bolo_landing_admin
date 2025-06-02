@@ -61,11 +61,13 @@ export default function PromotionsPage() {
 
   const filteredPromotions = promotions.filter((promotion) => {
     const matchesSearch = search
-      ? promotion.name.toLowerCase().includes(search.toLowerCase()) ||
-        promotion.description?.toLowerCase().includes(search.toLowerCase())
+      ? promotion.product.name.toLowerCase().includes(search.toLowerCase()) ||
+        promotion.product.description
+          ?.toLowerCase()
+          .includes(search.toLowerCase())
       : true;
     const matchesCategory =
-      category !== "all" ? promotion.category === category : true;
+      category !== "all" ? promotion.product.category === category : true;
     const matchesStatus = status !== "all" ? promotion.status === status : true;
     return matchesSearch && matchesCategory && matchesStatus;
   });
@@ -215,11 +217,13 @@ export default function PromotionsPage() {
                   }
                 >
                   <TableCell className="font-medium">
-                    {promotion.name}
+                    {promotion.product.name}
                   </TableCell>
-                  <TableCell>{categoryLabels[promotion.category]}</TableCell>
                   <TableCell>
-                    {promotion.regularPrice.toLocaleString()} FCFA
+                    {categoryLabels[promotion.product.category]}
+                  </TableCell>
+                  <TableCell>
+                    {promotion.product.regularPrice.toLocaleString()} FCFA
                   </TableCell>
                   <TableCell>
                     {promotion.promoPrice.toLocaleString()} FCFA
